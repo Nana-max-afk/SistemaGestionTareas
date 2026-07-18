@@ -1,0 +1,32 @@
+<?php
+
+require_once __DIR__ . '/../config/database.php';
+
+class UserModel
+{
+    private PDO $db;
+
+    public function __construct()
+    {
+        $this->db = Database::getConnection();
+    }
+
+    public function findByEmail(string $email): ?array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM users WHERE email = :email LIMIT 1');
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
+
+        return $user ?: null;
+    }
+
+    public function create(array $data): bool
+    {
+        $stmt = $this->db->prepare('INSERT INTO users (name, email, password) VALUES (:name, :email, :password)');
+        return $stmt->execute([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => password_hash($data['password'], PASSWORD_BCRYPT),
+        ]);
+    }
+}
